@@ -1,0 +1,71 @@
+---
+title: Análisis Exploratorio De Datos
+athors:
+- Mateo Yáñez Tanaka
+- Jorge Sánchez Ponce
+- Fernando Ramos Valdez
+- Fernando Pavía González
+format:
+    html:
+        toc: true
+        html-math-method: katex
+        embed-resources: true
+        self-contained-math: true
+        df-print: kable
+---
+
+En este notebook se seguiran todos los pasos necesarios para el análisis exploratorio de los datos. 
+
+## Limpieza de Datos
+
+Comenzaremos por cargar y limpiar la base de datos, asegurandonos que todo se encuentre en la forma más fácil de usar. Es decir todas las variables se deben de encontrar tipificadas propiamente las columnas nombradas de manera que sean fáciles de acceder y los datos en condiciones en las cuáles se pueda realizar inferencia.
+
+```{python}
+import pandas as pd
+import numpy as np
+from scipy import stats as stats
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+data = pd.read_csv('../Data/data_globant.csv')
+data.head()
+```
+
+Los datos contienen muchas variables categóricas junto con otras tantas numéricas. En específico las variables que nos dan mayor contexto sobre los datos son aquellas como la fecha en la que se registró(```Date```),  la antigüedad de la persona (```Seniority```), la posición que ejerce (```Position```), su equipo (```TeamName```) y finalmente el engagement que es el valor con el que más importa que trabajemos (```Engagement```). Ahora sería relevante ver que todas las variables estén nombradas de maneras en las que sean de fácil acceso (sin espacios y en únicamente minúsculas)
+
+```{python}
+data.columns = [col.lower() for col in data.columns]
+data.columns = [col.replace(' ','_') for col in data.columns]
+
+data.head()
+```
+
+Con los nombres de las columnas estandarizados verificaremos que todas las columnas estén tipificadas propiamente, es decir que los datos numéricos tengan un tipo de dato numérico y los que no deberían de tenerlo no lo tengan
+
+```{python}
+data.info()
+```
+
+Todos los datos están tipificados propiamente, entonces entramos a la fase final en la que nos desharemos de columnas innecesarias y redundantes. Para esto es necesario que recordemos el propósito de este proyecto: Intentar predecir cuándo un empleado está por bajar su engagement. Para esto conservaremos solo ciertas cosas
+- ```date``` es la fecha y es altamente relevante para saber cuándo se observó ese engagement
+- ```name``` es el nombre del empleado y servirá para poder identificarlo
+- ```position``` es el puesto que ejercen dentro de la empresa y nos servirá para pruebas estadísticas
+- ```seniority``` es la antigüedad en la empresa y servirá para realizar pruebas estadísticas
+- ```location``` se refiere a la ubicación de la rama en la que trabaja el empleado. Se usará para pruebas estadísticas.
+- ```studio``` es el área en la que trabaja. Se usará para pruebas estadísticas
+- ```client``` se refiere al cliente con el que está trabajando. Se usará para pruebas estadísticas
+- ```project``` es el proyecto en el que trabaja. Se usará para pruebas estadísticas
+- ```team_name``` es el nombre del equipo en el que trabaja.  Se usará para pruebas estadísticas
+- ```engagement``` es el engagement que intentaremos predecir, será nuestra variable de respuesta
+
+El resto de las variables se removerán, junto con los registros duplicados. 
+
+```{python}
+data.drop(columns=['email','client_tag','project_tag','email_leader','year','month','day'], inplace = True)
+data.drop_duplicates(inplace=True)
+
+data.to_csv('../Data/data_globant_clean.csv')
+```
+
+Con esto terminamos la limpieza de los datos y podemos proceder con el análisis exploratorio.
+    
