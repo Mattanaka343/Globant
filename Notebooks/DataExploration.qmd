@@ -1,7 +1,6 @@
 ---
 title: Análisis Exploratorio De Datos
-output-dir: ../Reports/DataExp.html
-athors:
+authors:
 - Mateo Yáñez Tanaka
 - Jorge Sánchez Ponce
 - Fernando Ramos Valdez
@@ -84,6 +83,7 @@ plt.title('Distribución de valores de engagement')
 plt.xlabel('Puntaje de engagement')
 plt.ylabel('Frecuencia')
 plt.hist(data['engagement'], bins=30, color='purple',density=True);
+plt.savefig('../Figures/EngagementDist.png')
 plt.show()
 ```
 
@@ -112,6 +112,7 @@ for team in teams:
     col += 1
 
 fig.suptitle('Distribución de engagement por equipo')
+plt.savefig('../Figures/EngagementEquipo.png')
 plt.tight_layout()
 plt.show()
 ```
@@ -143,6 +144,7 @@ for i, month in enumerate(months):
     col += 1
 
 fig.suptitle('Distribución de engagement por mes')
+plt.savefig('../Figures/EgagementMes.png')
 plt.tight_layout()
 plt.show()
 ```
@@ -182,6 +184,7 @@ for i in range(0,10):
     axs[row,col].set_ylabel('Engagement del equipo (promedio)')
     col +=1
 fig.suptitle('Linea del tiempo de engagement por equipo')
+plt.savefig('../Figures/TimelineEquipos.png')
 plt.tight_layout()
 plt.show()
 ```
@@ -221,6 +224,7 @@ for i in range(0,10):
     axs[row,col].set_ylabel('Engagement')
     col += 1 
 fig.suptitle('Linea del tiempo de engagement personal')
+plt.savefig('../Figures/TimelinePersonas.png')
 plt.tight_layout()
 plt.show()
 ```
