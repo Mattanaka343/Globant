@@ -1,5 +1,6 @@
 ---
 title: Análisis Exploratorio De Datos
+output-dir: ../Reports/DataExp.html
 athors:
 - Mateo Yáñez Tanaka
 - Jorge Sánchez Ponce
@@ -63,9 +64,165 @@ El resto de las variables se removerán, junto con los registros duplicados.
 ```{python}
 data.drop(columns=['email','client_tag','project_tag','email_leader','year','month','day'], inplace = True)
 data.drop_duplicates(inplace=True)
+data['date'] = pd.to_datetime(data['date'], format='%d%b%y')
 
 data.to_csv('../Data/data_globant_clean.csv')
 ```
 
 Con esto terminamos la limpieza de los datos y podemos proceder con el análisis exploratorio.
+
+## Análisis Exploratorio
+
+Como parte del análisis exploratorio de estos datos decidimos considerar si realizar pruebas de hipótesis sería una buena idea.  
+
+### Entendiendo las distribuciones
+
+Para decidir si este tipo de prueba sería una buena idea comenzamos viendo la distribución de los datos de la variable de engagement que será la que intentaremos predecir más adelante. 
+
+```{python}
+plt.title('Distribución de valores de engagement')
+plt.xlabel('Puntaje de engagement')
+plt.ylabel('Frecuencia')
+plt.hist(data['engagement'], bins=30, color='purple',density=True);
+plt.show()
+```
+
+Como se puede notar por su histograma la distribución de estos datos no es precisamente normal ya que hay demasiados valores muy bajos y muy altos (cerca de 0 y cerca de 5) además de que existe un espacio vacío en general entre 1 y 1.5 aproximadamente. Ahora veremos como se distribuye esto si separamos por equipos
+
+```{python}
+n = data['team_name'].nunique()
+teams = list(data['team_name'].unique())
+
+fig, axs = plt.subplots(int(np.ceil(n/2)),2, figsize= (20,20));
+
+row = 0
+col = 0
+
+for team in teams:
+    d = data[data['team_name'] == team]
+    mean = data['engagement'].mean()
+    if col == 2:
+        row += 1
+        col = 0
+    axs[row, col].hist(d['engagement'],bins=30,color= 'purple');
+    axs[row,col].axvline(mean, color='red', linestyle='--', linewidth=2)
+    axs[row, col].set_title(f'Distribución de engagement de {team}')
+    axs[row, col].set_xlabel('Engagement')
+    axs[row, col].set_ylabel('Frecuencia')
+    col += 1
+
+fig.suptitle('Distribución de engagement por equipo')
+plt.tight_layout()
+plt.show()
+```
+
+Con estas gráficas ya creadas se puede notar que el engagement o muy bajo o muy alto no son características de un equipo en especial a lo largo de todo el tiempo en el que se recabaron estos datos. A pesar de esto si es relevante notar que las distribuciones del engagement si cambian dependiendo del equipo del que se trarta.
+
+Ahora sería relevante encontrar si el engagement general baja en alguna fecha, para esto seccionaremos en los 12 meses del año y veremos si alguno presenta una distribución significativamente diferente.
+
+```{python}
+months = [1,2,3,4,5,6]
+month_names = ['Enero','Febrero','Marzo','Abril','Mayo','Junio']
+fig, axs =  plt.subplots(3,2,figsize=(15,15))
+row = 0
+col = 0
+
+for i, month in enumerate(months):
+    d = data[data['date'].dt.month == month]
+    mean = d['engagement'].mean()
+
+    if col == 2:
+        row += 1
+        col = 0
+
+    axs[row,col].hist(d['engagement'], bins = 30, color = 'purple');
+    axs[row,col].axvline(mean, color='red', linestyle='--', linewidth=2)
+    axs[row,col].set_title(f'Distribución de engagement en {month_names[i]}')
+    axs[row,col].set_xlabel('Engagement')
+    axs[row,col].set_ylabel('Frecuencia')
+    col += 1
+
+fig.suptitle('Distribución de engagement por mes')
+plt.tight_layout()
+plt.show()
+```
+
+Las distribuciones no parecen ser significativamente diferentes por mes. Aunque si existe información relevante, como que le mes con el engagement más alto en promedio es Enero donde excede 3, y que de ahí en más el promedio se ve reducido en el resto de los meses manteniendose igual o menor a 3. Esto sugiere que el engagement no se reduce significativamente.
+
+Esto nos muestra que las pruebas de hipótesis no serían el mejor enfoque para poder entender estos datos.
+
+### Líneas de Tiempo
+
+Cambiando el enfoque de pruebas de hipótesis, decidimos generar líneas del tiempo segmentando por equipo para ver si sus conductas cambian con el tiempo. Estas gráficas se realizaran por cada uno de los días en los que trabajo cada equipo para evitar valores nulos en la recabación y potencialmente poder agregar esrta información a la base de datos. El engagement de cada equipo se considerará como el promedio del engagement de sus miembros en cualquier fecha dada.
+
+```{python}
+team_engagements = []
+team_dates = []
+
+for team in teams:
+    team_data = data[data['team_name'] == team].sort_values('date')
+    group = team_data.groupby('date', as_index=False)['engagement'].mean()
     
+    team_engagements.append(group['engagement'].values)
+    team_dates.append(group['date'].values)
+
+fig, axs = plt.subplots(5,2,figsize=(20,20))
+row = 0
+col = 0
+
+for i in range(0,10):
+    x = team_dates[i]
+    y = team_engagements[i]
+    if col == 2:
+        row += 1
+        col = 0
+    axs[row,col].plot(x,y);
+    axs[row,col].set_title(f'Linea del tiempo del engagement de {teams[i]}')
+    axs[row,col].set_xlabel('Fecha')
+    axs[row,col].set_ylabel('Engagement del equipo (promedio)')
+    col +=1
+fig.suptitle('Linea del tiempo de engagement por equipo')
+plt.tight_layout()
+plt.show()
+```
+
+Estas gráficas nos proporcionan un poco más de información sobre las distinciones entre los engagements de los equipos, ya que, como se puede notar en la gráfica de Finding Nemo's Friends, The Great Catsby y Fight Club Penguin a pesar de que los promedios generales y distribuciones del engagement en los meses hayan sido muy similares se puede ver claramente que el performance promedio de estos equipo disminuye a lo largo del tiempo.
+
+Ahora se realizará un análisis similar para una muestra de 10 personas de manera aleatoria para ver si se puede observar alguna tendencia en sus engagements personales.
+
+
+```{python}
+np.random.seed(42)
+people = np.random.choice(data['name'].unique(),size = 10, replace= False)
+
+people_engagements = []
+people_dates = []
+
+for person in people:
+    person_data = data[data['name']==person].sort_values('date')
+    person_data = person_data.groupby('date', as_index = False)['engagement'].mean()
+
+    people_engagements.append(person_data['engagement'].values)
+    people_dates.append(person_data['date'].values)
+
+fig, axs = plt.subplots(5,2,figsize = (20,20))
+row = 0
+col = 0
+
+for i in range(0,10):
+    x = people_dates[i]
+    y = people_engagements[i]
+    if col == 2:
+        row += 1
+        col = 0
+    axs[row,col].plot(x,y);
+    axs[row,col].set_title(f'Linea del tiempo del engagement de {people[i]}')
+    axs[row,col].set_xlabel('Fecha')
+    axs[row,col].set_ylabel('Engagement')
+    col += 1 
+fig.suptitle('Linea del tiempo de engagement personal')
+plt.tight_layout()
+plt.show()
+```
+
+Aquí se pueden notar algunos patrones bastante más obvios que muestran que el engagement en efecto decrece con el tiempo para ciertas personas. Esto se puede ver especialmente en los casos de Sofia Delgado y Ana Gómez que pertenecen a los eqipos de Finding Nemo's Friends y Breaking Badger respectivamente. En ambos casos sus engagements decrecen de manera bastante estable y luego se estancan en un valor alrededor de 3 el cual es el valor promedio del engagement. Adicionalmente se puede notar que varios parecen no seguir mucho un patrón y simplemente oscilar en los valores altos con alguno que otro cero marcando una inasistencia para ese miembro del equipo, un ejemplo de este tipo de conducta se presenta en el caso de Natalia Ramirez y Ana Salas. Finalmente se puede encontrar otro tipo de patrón diferente en el que los valores oscilan en los números altos, luego bajan por un periodo de tiempo y finalmente suben otra vez, esto se puede ver en los casos de Alberto Bravo y Paula Cordero. Estos patrones sugieren que no existe un patrón general para el engagement en todos los empleados y que un modelo sería mejor si intenta predecir los engagements personales.   
