@@ -14,9 +14,21 @@ format:
         df-print: kable
 ---
 
-En este notebook se seguiran todos los pasos necesarios para el análisis exploratorio de los datos. 
+## Contexto y Motivación
+Globant es una empresa global de tecnología que se especializa en crear experiencias digitales innovadoras, transformación digital e inteligencia artificial (IA). La compañía desarrolla soluciones de software y proporciona herramientas de IA como su plataforma "Globant Enterprise AI" para ayudar a otras empresas a crear asistentes de IA y automatizar procesos sin necesidad de programación. 
+
+
+Para este reto, Globant nos proporcionó información sobre el trabajo de varios equipos en diversos proyectos y clientes. Los datos incluirán el ID de empleado, la experiencia técnica y la antigüedad de cada persona, así como detalles del proyecto, como la asignación al equipo, el nombre del proyecto y el cliente con el que trabajan además de métricas de participación que incluyen indicadores de motivación y compromiso, con granularidad diaria, ofreciendo un registro diario de cada persona. El informe abarca seis meses de datos diarios.
+ 
 
 ## Limpieza de Datos
+
+Los objetivos principales del análisis exploratorio de los datos son:
+Comprender la composición y la dinámica del equipo:
+● Identificar comportamientos
+● Comprender los datos y sus comportamientos
+● Entender el presente y tener bases para poder predecir el futuro
+
 
 Comenzaremos por cargar y limpiar la base de datos, asegurandonos que todo se encuentre en la forma más fácil de usar. Es decir todas las variables se deben de encontrar tipificadas propiamente las columnas nombradas de manera que sean fáciles de acceder y los datos en condiciones en las cuáles se pueda realizar inferencia.
 
@@ -58,7 +70,9 @@ Todos los datos están tipificados propiamente, entonces entramos a la fase fina
 - ```team_name``` es el nombre del equipo en el que trabaja.  Se usará para pruebas estadísticas
 - ```engagement``` es el engagement que intentaremos predecir, será nuestra variable de respuesta
 
-El resto de las variables se removerán, junto con los registros duplicados. 
+El resto de las variables se removerán, junto con los registros duplicados.
+
+No hay registros nulos en las columnas que decidimos conservar, por lo que no es necesario hacer un tratamiento especial para ellos.
 
 ```{python}
 data.drop(columns=['email','client_tag','project_tag','email_leader','year','month','day'], inplace = True)
@@ -69,6 +83,29 @@ data.to_csv('../Data/data_globant_clean.csv')
 ```
 
 Con esto terminamos la limpieza de los datos y podemos proceder con el análisis exploratorio.
+
+Finalmente haremos un pequeño describe a la única variable númerica que tenemos en la base de datos, el engagement, el cual será la variabel de respuesta e interés. Las demás, ya que son de tipo objeto y con diferentes unidades, un análisis descriptivo no es tan relevante.
+
+```{python}
+engagement = data['engagement']
+engagement.describe()
+```
+
+Como podemos ver, confirmamos que el engagement es una variable que toma valores entre 0 y 5, con una media de 2.87 y una desviación estándar de 1.56. El valor mínimo de 0 sugiere que hay empleados que no muestran ningún nivel de compromiso, mientras que el valor máximo de 5 indica un compromiso total. La media cercana a 3 sugiere que, en promedio, los empleados tienen un nivel moderado de compromiso. La desviación estándar relativamente alta indica una variabilidad significativa en los niveles de compromiso entre los empleados.
+
+Lo que si podemos hacer para las columnas categóricas es ver cuantos valores únicos tienen y cúantos registros hay por cada uno de estos valores.
+
+```{python}
+categorical_cols = data.select_dtypes(include=['object']).columns
+for col in categorical_cols:
+    print(f'Columna: {col}')
+    print(f'Número de valores únicos: {data[col].nunique()}')
+    print('Frecuencia de cada valor:')
+    print(data[col].value_counts())
+    print('\n')
+```
+
+Para estas variables categóricas podemos notar que varias de ellas tienen una cantidad considerable de valores únicos, como el nombre del empleado, el proyecto y el cliente. Esto sugiere que la base de datos abarca una amplia variedad de empleados y proyectos, lo cual es beneficioso para un análisis exhaustivo. Otras variables, como la posición y la ubicación, tienen menos valores únicos, lo que indica que hay categorías más definidas en estas áreas.
 
 ## Análisis Exploratorio
 
@@ -117,7 +154,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-Con estas gráficas ya creadas se puede notar que el engagement o muy bajo o muy alto no son características de un equipo en especial a lo largo de todo el tiempo en el que se recabaron estos datos. A pesar de esto si es relevante notar que las distribuciones del engagement si cambian dependiendo del equipo del que se trarta.
+Con estas gráficas ya creadas se puede notar que el engagement o muy bajo o muy alto no son características de un equipo en especial a lo largo de todo el tiempo en el que se recabaron estos datos. A pesar de esto si es relevante notar que las distribuciones del engagement si cambian dependiendo del equipo del que se trata.
 
 Ahora sería relevante encontrar si el engagement general baja en alguna fecha, para esto seccionaremos en los 12 meses del año y veremos si alguno presenta una distribución significativamente diferente.
 
@@ -149,13 +186,13 @@ plt.tight_layout()
 plt.show()
 ```
 
-Las distribuciones no parecen ser significativamente diferentes por mes. Aunque si existe información relevante, como que le mes con el engagement más alto en promedio es Enero donde excede 3, y que de ahí en más el promedio se ve reducido en el resto de los meses manteniendose igual o menor a 3. Esto sugiere que el engagement no se reduce significativamente.
+Las distribuciones no parecen ser significativamente diferentes por mes. Aunque si existe información relevante, como que el mes con el engagement más alto en promedio es Enero donde excede 3, y que de ahí en más el promedio se ve reducido en el resto de los meses manteniendose igual o menor a 3. Esto sugiere que el engagement no se reduce significativamente.
 
 Esto nos muestra que las pruebas de hipótesis no serían el mejor enfoque para poder entender estos datos.
 
 ### Líneas de Tiempo
 
-Cambiando el enfoque de pruebas de hipótesis, decidimos generar líneas del tiempo segmentando por equipo para ver si sus conductas cambian con el tiempo. Estas gráficas se realizaran por cada uno de los días en los que trabajo cada equipo para evitar valores nulos en la recabación y potencialmente poder agregar esrta información a la base de datos. El engagement de cada equipo se considerará como el promedio del engagement de sus miembros en cualquier fecha dada.
+Cambiando el enfoque de pruebas de hipótesis, decidimos generar líneas del tiempo segmentando por equipo para ver si sus conductas cambian con el tiempo. Estas gráficas se realizaran por cada uno de los días en los que trabajo cada equipo para evitar valores nulos en la recabación y potencialmente poder agregar esta información a la base de datos. El engagement de cada equipo se considerará como el promedio del engagement de sus miembros en cualquier fecha dada.
 
 ```{python}
 team_engagements = []
