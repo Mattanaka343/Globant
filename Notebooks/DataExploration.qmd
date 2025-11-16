@@ -1,17 +1,25 @@
 ---
-title: Análisis Exploratorio De Datos
+title: "Análisis Exploratorio De Datos"
+subtitle: "Proyecto Final"
 authors:
-- Mateo Yáñez Tanaka
-- Jorge Sánchez Ponce
-- Fernando Ramos Valdez
-- Fernando Pavía González
+  - Mateo Yáñez Tanaka
+  - Jorge Sánchez Ponce
+  - Fernando Ramos Valdez
+  - Fernando Pavía González
+date: "16/11/2025"
+institution: "Tec de Monterrey"
 format:
-    html:
-        toc: true
-        html-math-method: katex
-        embed-resources: true
-        self-contained-math: true
-        df-print: kable
+  html:
+    toc: true
+    html-math-method: katex
+    embed-resources: true
+    self-contained-math: true
+    df-print: kable
+    title-block-banner: true
+    title-block-style:1
+    code-fold: false
+    code-tools: false
+    echo: false
 ---
 
 ## Contexto y Motivación
@@ -19,7 +27,12 @@ Globant es una empresa global de tecnología que se especializa en crear experie
 
 
 Para este reto, Globant nos proporcionó información sobre el trabajo de varios equipos en diversos proyectos y clientes. Los datos incluirán el ID de empleado, la experiencia técnica y la antigüedad de cada persona, así como detalles del proyecto, como la asignación al equipo, el nombre del proyecto y el cliente con el que trabajan además de métricas de participación que incluyen indicadores de motivación y compromiso, con granularidad diaria, ofreciendo un registro diario de cada persona. El informe abarca seis meses de datos diarios.
- 
+
+Usaremos los datos proporcionados por Globant para generar un modelo que sea capaz de predecir el desempeño de los empleados basado en el desempeño que se ha observado previamente. Para esto será necesario comprender la composición, dinámica del equipo y factores en general que puedan afectar el desempeño de los empleados. Este proyecto nos presenta con un ambiente realista en el que debemos poner en práctica los conocimientos de programación y análisis estadístico que hemos adquirido a lo largo de la carrera para poder lograr el objetivo. Es únicamente a través de ellos que logramos realizar un análisis exploratorio de los datos que contuviera información relevante al contexto y forma de los datos que observamos. Aunado a lo anterior este proyecto también es de mucha relevancia para Globant, ya que podría ayudarles a tomar decisiones informadas sobre sus políticas de terminación y sobre los ciclos de vida de equipos y proyectos dentro de la empresa. 
+
+
+En este primer documento buscamos realizar un análisis exploratorio de los datos para poder comprender mejor el comportamiento de los datos y a partir de esto comenzar a comprender las conductas subyacentes que explican los datos observados. Con esta información esperamos construir bases fuertes para poder establecer un modelo predictivo que pueda pronosticar las bajas en el desempeño de los empleados.
+
 
 ## Limpieza de Datos
 
