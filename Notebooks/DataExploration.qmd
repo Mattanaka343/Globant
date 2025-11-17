@@ -101,6 +101,7 @@ Si bien se cuenta con la descripción general de los datos de todos los empleado
 ```{python}
 team_describe = pd.DataFrame()
 data_by_team= []
+teams = list(data['team_name'].unique())
 for team in teams:
     data_by_team.append(data[data['team_name'] == team])
     team_describe[team]=data[data['team_name'] == team]["engagement"].describe()
@@ -109,7 +110,7 @@ print(team_describe)
 
 ```
 
-Los valores obtenidos a partir de describe resultan utiles pero sería mas conveniente visualizarlos de forma más clara en gráficas de barras o boxplots
+Los valores obtenidos a partir de describe resultan útiles pero sería mas conveniente visualizarlos de forma más clara en gráficas de barras o boxplots.
 
 ```{python}
 means = team_describe.loc["mean"]
@@ -184,12 +185,12 @@ plt.savefig('../Figures/BoxplotEquipos.png')
 
 ```
 
-Pasando al boxplot podemos observar una cantidad significativa de outliers en los valores mas bajos del engagement mostrando que hay un 
+Pasando al boxplot podemos observar una cantidad significativa de outliers en el rango más bajo del engagement, esto muestra que existe un porcentaje considerable de miembros en cada equipo cuya participación e interacción suele ser escasa. Cabe destacar que la media de todos los equipos fluctúa en valores cercanos a 3, ya sea ligeramente menor o mayor que este. A su vez, los equipos Fight Club Penguin y The Matrix Mice resaltan por poseer muchos outliers con niveles altos de engagement.
 
 ### Division por meses
 
 ```{python}
-
+months = [1,2,3,4,5,6]
 month_describe = pd.DataFrame()
 data_by_month= []
 for month in months:
@@ -205,6 +206,7 @@ print(month_describe)
 
 means = month_describe.loc["mean"]
 stds = month_describe.loc["std"]
+month_names = ['Enero','Febrero','Marzo','Abril','Mayo','Junio']
 
 #utilizamos este index para reordenar nuestras metricas
 
@@ -238,7 +240,7 @@ plt.show()
 plt.savefig('../Figures/BarplotMes.png')
 
 ```
-A partir de esta grafica es fácil distinguir al mes de enero como el mes más productivo de los registros
+A partir de esta gráfica es fácil distinguir al mes de enero como el mes más productivo de los registros.
 
 ```{python}
 
@@ -253,12 +255,14 @@ for df in data_by_month:
 plt.boxplot(engagement_values, labels=month_names, vert=False)
 
 plt.xlabel("Engagement")
-plt.title("Distribución de Engagement por Equipo")
+plt.title("Distribución de Engagement por Mes")
 plt.show()
 plt.savefig('../Figures/BoxplotMes.png')
 
 
 ```
+
+Este gráfico refuerza los análisis previamente mencionados, el primer mes del año se alza como el mes con el mejor promedio de engagement, e igualmente, se observan bastantes outliers en el intervalo de 0-1, siendo un factor común en todos los meses, aunque ligeramente menor en enero.
 
  
 
