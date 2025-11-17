@@ -151,8 +151,8 @@ ax.set_yticks(x + width, teams_sorted)
 ax.legend(loc='lower right')
 ax.set_xlim(0, 4)
 
-plt.show()
 plt.savefig('../Figures/BarplotEquipos.png')
+plt.show()
 
 
 ```
@@ -174,12 +174,12 @@ for df in data_by_team:
     team_labels.append(df["team_name"].iloc[0])  # tomar el nombre del equipo
 
 
-plt.boxplot(engagement_values, labels=team_labels, vert=False)
+fig=plt.boxplot(engagement_values, labels=team_labels, vert=False)
 
 plt.xlabel("Engagement")
 plt.title("Distribución de Engagement por Equipo")
-plt.show()
 plt.savefig('../Figures/BoxplotEquipos.png')
+plt.show()
 
 
 ```
@@ -234,8 +234,8 @@ ax.set_yticks(x + width, month_names)
 ax.legend(loc='upper right')
 ax.set_xlim(0, 4)
 
-plt.show()
 plt.savefig('../Figures/BarplotMes.png')
+plt.show()
 
 ```
 A partir de esta grafica es fácil distinguir al mes de enero como el mes más productivo de los registros
@@ -254,8 +254,8 @@ plt.boxplot(engagement_values, labels=month_names, vert=False)
 
 plt.xlabel("Engagement")
 plt.title("Distribución de Engagement por Equipo")
-plt.show()
 plt.savefig('../Figures/BoxplotMes.png')
+plt.show()
 
 
 ```
