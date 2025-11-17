@@ -93,6 +93,175 @@ engagement.describe()
 
 Como podemos ver, confirmamos que el engagement es una variable que toma valores entre 0 y 5, con una media de 2.87 y una desviación estándar de 1.56. El valor mínimo de 0 sugiere que hay empleados que no muestran ningún nivel de compromiso, mientras que el valor máximo de 5 indica un compromiso total. La media cercana a 3 sugiere que, en promedio, los empleados tienen un nivel moderado de compromiso. La desviación estándar relativamente alta indica una variabilidad significativa en los niveles de compromiso entre los empleados.
 
+
+## Estadisticas Descriptivas
+
+Si bien se cuenta con la descripción general de los datos de todos los empleados también resulta importante evaluar el nivel de engagement medio por equipo para hacer comparativas entre la eficiencia de todos los equipos
+### División por equipos de trabajo
+```{python}
+team_describe = pd.DataFrame()
+data_by_team= []
+for team in teams:
+    data_by_team.append(data[data['team_name'] == team])
+    team_describe[team]=data[data['team_name'] == team]["engagement"].describe()
+
+print(team_describe)
+
+```
+
+Los valores obtenidos a partir de describe resultan utiles pero sería mas conveniente visualizarlos de forma más clara en gráficas de barras o boxplots
+
+```{python}
+means = team_describe.loc["mean"]
+stds = team_describe.loc["std"]
+
+# Obtenemos los index de los valores ordenados de la media
+order = means.sort_values(ascending=True).index
+
+#utilizamos este index para reordenar nuestras metricas
+means_sorted = means[order]
+stds_sorted = stds[order]
+teams_sorted = order
+
+
+metric_values = {
+    'std': stds_sorted,
+
+    'mean': means_sorted
+}
+
+x = np.arange(len(teams_sorted))
+width = 0.4
+multiplier = 0
+
+fig, ax = plt.subplots(layout='constrained')
+
+for attribute, measurement in metric_values.items():
+    offset = width * multiplier
+    rects = ax.barh(x + offset, measurement, width, label=attribute)
+    ax.bar_label(rects, padding=1)
+    multiplier += 1
+
+ax.set_xlabel('Value')
+ax.set_title('Engagement medio por equipo')
+
+# Etiquetas ordenadas
+ax.set_yticks(x + width, teams_sorted)
+
+ax.legend(loc='lower right')
+ax.set_xlim(0, 4)
+
+plt.show()
+plt.savefig('../Figures/BarplotEquipos.png')
+
+
+```
+
+Ahora tenemos una visualización clara del orden de los equipos en base a la media del engagement y a su vez de sus desviaciones estandar que en la mayoría de los casos parece muy similar.
+
+En base a estas metricas el equipo con mejor engagement es "Star Wars: The Furry Awakens" y el peor siendo "Breaking Badger"
+
+
+
+```{python}
+
+# Extraer valores de engagement y nombres de equipo
+engagement_values = []
+team_labels = []
+
+for df in data_by_team:
+    engagement_values.append(df["engagement"])
+    team_labels.append(df["team_name"].iloc[0])  # tomar el nombre del equipo
+
+
+plt.boxplot(engagement_values, labels=team_labels, vert=False)
+
+plt.xlabel("Engagement")
+plt.title("Distribución de Engagement por Equipo")
+plt.show()
+plt.savefig('../Figures/BoxplotEquipos.png')
+
+
+```
+
+Pasando al boxplot podemos observar una cantidad significativa de outliers en los valores mas bajos del engagement mostrando que hay un 
+
+### Division por meses
+
+```{python}
+
+month_describe = pd.DataFrame()
+data_by_month= []
+for month in months:
+    data_by_month.append(data[data['date'].dt.month == month])
+
+    month_describe[month]=data[data['date'].dt.month == month]["engagement"].describe()
+#
+print(month_describe)
+```
+
+
+```{python}
+
+means = month_describe.loc["mean"]
+stds = month_describe.loc["std"]
+
+#utilizamos este index para reordenar nuestras metricas
+
+metric_values = {
+    'std': stds,
+    'mean': means
+}
+
+x = np.arange(len(months))
+width = 0.4
+multiplier = 0
+
+fig, ax = plt.subplots(layout='constrained')
+
+for attribute, measurement in metric_values.items():
+    offset = width * multiplier
+    rects = ax.barh(x + offset, measurement, width, label=attribute)
+    ax.bar_label(rects, padding=1)
+    multiplier += 1
+
+ax.set_xlabel('Value')
+ax.set_title('Engagement medio por mes')
+
+# Etiquetas ordenadas
+ax.set_yticks(x + width, month_names)
+
+ax.legend(loc='upper right')
+ax.set_xlim(0, 4)
+
+plt.show()
+plt.savefig('../Figures/BarplotMes.png')
+
+```
+A partir de esta grafica es fácil distinguir al mes de enero como el mes más productivo de los registros
+
+```{python}
+
+# Extraer valores de engagement y nombres de equipo
+engagement_values = []
+
+for df in data_by_month:
+    engagement_values.append(df["engagement"])
+ # tomar el nombre del equipo
+
+
+plt.boxplot(engagement_values, labels=month_names, vert=False)
+
+plt.xlabel("Engagement")
+plt.title("Distribución de Engagement por Equipo")
+plt.show()
+plt.savefig('../Figures/BoxplotMes.png')
+
+
+```
+
+ 
+
 Lo que si podemos hacer para las columnas categóricas es ver cuantos valores únicos tienen y cúantos registros hay por cada uno de estos valores.
 
 ```{python}
@@ -181,7 +350,7 @@ for i, month in enumerate(months):
     col += 1
 
 fig.suptitle('Distribución de engagement por mes')
-plt.savefig('../Figures/EgagementMes.png')
+plt.savefig('../Figures/EngagementMes.png')
 plt.tight_layout()
 plt.show()
 ```
