@@ -253,7 +253,7 @@ for df in data_by_month:
 plt.boxplot(engagement_values, labels=month_names, vert=False)
 
 plt.xlabel("Engagement")
-plt.title("Distribución de Engagement por Equipo")
+plt.title("Distribución de Engagement por Mes")
 plt.savefig('../Figures/BoxplotMes.png')
 plt.show()
 
