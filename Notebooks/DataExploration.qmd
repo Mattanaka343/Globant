@@ -1,13 +1,10 @@
 ---
 title: "Análisis Exploratorio De Datos"
-subtitle: "Proyecto Final"
 authors:
   - Mateo Yáñez Tanaka
   - Jorge Sánchez Ponce
   - Fernando Ramos Valdez
   - Fernando Pavía González
-date: "16/11/2025"
-institution: "Tec de Monterrey"
 format:
   html:
     toc: true
@@ -15,10 +12,6 @@ format:
     embed-resources: true
     self-contained-math: true
     df-print: kable
-    title-block-banner: true
-    title-block-style:1
-    code-fold: false
-    code-tools: false
     echo: false
 ---
 
@@ -36,13 +29,6 @@ En este primer documento buscamos realizar un análisis exploratorio de los dato
 
 ## Limpieza de Datos
 
-Los objetivos principales del análisis exploratorio de los datos son:
-Comprender la composición y la dinámica del equipo:
-● Identificar comportamientos
-● Comprender los datos y sus comportamientos
-● Entender el presente y tener bases para poder predecir el futuro
-
-
 Comenzaremos por cargar y limpiar la base de datos, asegurandonos que todo se encuentre en la forma más fácil de usar. Es decir todas las variables se deben de encontrar tipificadas propiamente las columnas nombradas de manera que sean fáciles de acceder y los datos en condiciones en las cuáles se pueda realizar inferencia.
 
 ```{python}
@@ -56,7 +42,7 @@ data = pd.read_csv('../Data/data_globant.csv')
 data.head()
 ```
 
-Los datos contienen muchas variables categóricas junto con otras tantas numéricas. En específico las variables que nos dan mayor contexto sobre los datos son aquellas como la fecha en la que se registró(```Date```),  la antigüedad de la persona (```Seniority```), la posición que ejerce (```Position```), su equipo (```TeamName```) y finalmente el engagement que es el valor con el que más importa que trabajemos (```Engagement```). Ahora sería relevante ver que todas las variables estén nombradas de maneras en las que sean de fácil acceso (sin espacios y en únicamente minúsculas)
+Los datos contienen muchas variables categóricas junto con otras tantas numéricas. En específico las variables que nos dan mayor contexto sobre los datos son aquellas como la fecha en la que se registró (```Date```),  la antigüedad de la persona (```Seniority```), la posición que ejerce (```Position```), su equipo (```TeamName```) y finalmente el engagement que es el valor con el que más importa que trabajemos (```Engagement```). Ahora sería relevante ver que todas las variables estén nombradas de maneras en las que sean de fácil acceso (sin espacios y en únicamente minúsculas)
 
 ```{python}
 data.columns = [col.lower() for col in data.columns]
@@ -72,6 +58,7 @@ data.info()
 ```
 
 Todos los datos están tipificados propiamente, entonces entramos a la fase final en la que nos desharemos de columnas innecesarias y redundantes. Para esto es necesario que recordemos el propósito de este proyecto: Intentar predecir cuándo un empleado está por bajar su engagement. Para esto conservaremos solo ciertas cosas
+
 - ```date``` es la fecha y es altamente relevante para saber cuándo se observó ese engagement
 - ```name``` es el nombre del empleado y servirá para poder identificarlo
 - ```position``` es el puesto que ejercen dentro de la empresa y nos servirá para pruebas estadísticas
@@ -129,28 +116,31 @@ Como parte del análisis exploratorio de estos datos decidimos considerar si rea
 Para decidir si este tipo de prueba sería una buena idea comenzamos viendo la distribución de los datos de la variable de engagement que será la que intentaremos predecir más adelante. 
 
 ```{python}
+mean = data['engagement'].mean()
+
 plt.title('Distribución de valores de engagement')
 plt.xlabel('Puntaje de engagement')
 plt.ylabel('Frecuencia')
 plt.hist(data['engagement'], bins=30, color='purple',density=True);
+plt.axvline(mean, color='red', linestyle='--', linewidth=2)
 plt.savefig('../Figures/EngagementDist.png')
 plt.show()
 ```
 
-Como se puede notar por su histograma la distribución de estos datos no es precisamente normal ya que hay demasiados valores muy bajos y muy altos (cerca de 0 y cerca de 5) además de que existe un espacio vacío en general entre 1 y 1.5 aproximadamente. Ahora veremos como se distribuye esto si separamos por equipos
+Como se puede notar por su histograma la distribución de estos datos no es precisamente normal ya que hay demasiados valores muy bajos y muy altos (cerca de 0 y cerca de 5) además de que existe un espacio vacío en general entre 1 y 1.5 aproximadamente. Aunado a lo anterior también se puede notar que la media global del desempeño es de alrededor de 3. Ahora veremos como se distribuye esto si separamos por equipos
 
 ```{python}
 n = data['team_name'].nunique()
 teams = list(data['team_name'].unique())
 
-fig, axs = plt.subplots(int(np.ceil(n/2)),2, figsize= (20,20));
+fig, axs = plt.subplots(int(np.ceil(n/2)),2, figsize= (22,22));
 
 row = 0
 col = 0
 
 for team in teams:
     d = data[data['team_name'] == team]
-    mean = data['engagement'].mean()
+    mean = d['engagement'].mean()
     if col == 2:
         row += 1
         col = 0
@@ -167,7 +157,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-Con estas gráficas ya creadas se puede notar que el engagement o muy bajo o muy alto no son características de un equipo en especial a lo largo de todo el tiempo en el que se recabaron estos datos. A pesar de esto si es relevante notar que las distribuciones del engagement si cambian dependiendo del equipo del que se trata.
+Con estas gráficas ya creadas se puede notar que el engagement o muy bajo o muy alto no son características de un equipo en especial a lo largo de todo el tiempo en el que se recabaron estos datos. A pesar de esto si es relevante notar que las distribuciones del engagement si cambian dependiendo del equipo del que se trata. En específico se puede notar que las medias de equipos como *Breaking Badger* y *Star Wars: The Furry Awakens* difieren bastante de la media global para el desempeño.
 
 Ahora sería relevante encontrar si el engagement general baja en alguna fecha, para esto seccionaremos en los 12 meses del año y veremos si alguno presenta una distribución significativamente diferente.
 
@@ -218,7 +208,7 @@ for team in teams:
     team_engagements.append(group['engagement'].values)
     team_dates.append(group['date'].values)
 
-fig, axs = plt.subplots(5,2,figsize=(20,20))
+fig, axs = plt.subplots(5,2,figsize=(25,25))
 row = 0
 col = 0
 
@@ -258,7 +248,7 @@ for person in people:
     people_engagements.append(person_data['engagement'].values)
     people_dates.append(person_data['date'].values)
 
-fig, axs = plt.subplots(5,2,figsize = (20,20))
+fig, axs = plt.subplots(5,2,figsize = (25,25))
 row = 0
 col = 0
 
