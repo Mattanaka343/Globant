@@ -34,14 +34,13 @@ Usaremos los datos proporcionados por Globant para generar un modelo que sea cap
 En este primer documento buscamos realizar un análisis exploratorio de los datos para poder comprender mejor el comportamiento de los datos y a partir de esto comenzar a comprender las conductas subyacentes que explican los datos observados. Con esta información esperamos construir bases fuertes para poder establecer un modelo predictivo que pueda pronosticar las bajas en el desempeño de los empleados.
 
 
+Usaremos los datos proporcionados por Globant para generar un modelo que sea capaz de predecir el desempeño de los empleados basado en el desempeño que se ha observado previamente. Para esto será necesario comprender la composición, dinámica del equipo y factores en general que puedan afectar el desempeño de los empleados. Este proyecto nos presenta con un ambiente realista en el que debemos poner en práctica los conocimientos de programación y análisis estadístico que hemos adquirido a lo largo de la carrera para poder lograr el objetivo. Es únicamente a través de ellos que logramos realizar un análisis exploratorio de los datos que contuviera información relevante al contexto y forma de los datos que observamos. Aunado a lo anterior este proyecto también es de mucha relevancia para Globant, ya que podría ayudarles a tomar decisiones informadas sobre sus políticas de terminación y sobre los ciclos de vida de equipos y proyectos dentro de la empresa. 
+
+
+En este primer documento buscamos realizar un análisis exploratorio de los datos para poder comprender mejor el comportamiento de los datos y a partir de esto comenzar a comprender las conductas subyacentes que explican los datos observados. Con esta información esperamos construir bases fuertes para poder establecer un modelo predictivo que pueda pronosticar las bajas en el desempeño de los empleados.
+
+
 ## Limpieza de Datos
-
-Los objetivos principales del análisis exploratorio de los datos son:
-Comprender la composición y la dinámica del equipo:
-● Identificar comportamientos
-● Comprender los datos y sus comportamientos
-● Entender el presente y tener bases para poder predecir el futuro
-
 
 Comenzaremos por cargar y limpiar la base de datos, asegurandonos que todo se encuentre en la forma más fácil de usar. Es decir todas las variables se deben de encontrar tipificadas propiamente las columnas nombradas de manera que sean fáciles de acceder y los datos en condiciones en las cuáles se pueda realizar inferencia.
 
@@ -56,7 +55,7 @@ data = pd.read_csv('../Data/data_globant.csv')
 data.head()
 ```
 
-Los datos contienen muchas variables categóricas junto con otras tantas numéricas. En específico las variables que nos dan mayor contexto sobre los datos son aquellas como la fecha en la que se registró(```Date```),  la antigüedad de la persona (```Seniority```), la posición que ejerce (```Position```), su equipo (```TeamName```) y finalmente el engagement que es el valor con el que más importa que trabajemos (```Engagement```). Ahora sería relevante ver que todas las variables estén nombradas de maneras en las que sean de fácil acceso (sin espacios y en únicamente minúsculas)
+Los datos contienen muchas variables categóricas junto con otras tantas numéricas. En específico las variables que nos dan mayor contexto sobre los datos son aquellas como la fecha en la que se registró (```Date```),  la antigüedad de la persona (```Seniority```), la posición que ejerce (```Position```), su equipo (```TeamName```) y finalmente el engagement que es el valor con el que más importa que trabajemos (```Engagement```). Ahora sería relevante ver que todas las variables estén nombradas de maneras en las que sean de fácil acceso (sin espacios y en únicamente minúsculas)
 
 ```{python}
 data.columns = [col.lower() for col in data.columns]
@@ -72,6 +71,7 @@ data.info()
 ```
 
 Todos los datos están tipificados propiamente, entonces entramos a la fase final en la que nos desharemos de columnas innecesarias y redundantes. Para esto es necesario que recordemos el propósito de este proyecto: Intentar predecir cuándo un empleado está por bajar su engagement. Para esto conservaremos solo ciertas cosas
+
 - ```date``` es la fecha y es altamente relevante para saber cuándo se observó ese engagement
 - ```name``` es el nombre del empleado y servirá para poder identificarlo
 - ```position``` es el puesto que ejercen dentro de la empresa y nos servirá para pruebas estadísticas
@@ -106,6 +106,175 @@ engagement.describe()
 
 Como podemos ver, confirmamos que el engagement es una variable que toma valores entre 0 y 5, con una media de 2.87 y una desviación estándar de 1.56. El valor mínimo de 0 sugiere que hay empleados que no muestran ningún nivel de compromiso, mientras que el valor máximo de 5 indica un compromiso total. La media cercana a 3 sugiere que, en promedio, los empleados tienen un nivel moderado de compromiso. La desviación estándar relativamente alta indica una variabilidad significativa en los niveles de compromiso entre los empleados.
 
+
+## Estadisticas Descriptivas
+
+Si bien se cuenta con la descripción general de los datos de todos los empleados también resulta importante evaluar el nivel de engagement medio por equipo para hacer comparativas entre la eficiencia de todos los equipos
+### División por equipos de trabajo
+```{python}
+team_describe = pd.DataFrame()
+data_by_team= []
+for team in teams:
+    data_by_team.append(data[data['team_name'] == team])
+    team_describe[team]=data[data['team_name'] == team]["engagement"].describe()
+
+print(team_describe)
+
+```
+
+Los valores obtenidos a partir de describe resultan utiles pero sería mas conveniente visualizarlos de forma más clara en gráficas de barras o boxplots
+
+```{python}
+means = team_describe.loc["mean"]
+stds = team_describe.loc["std"]
+
+# Obtenemos los index de los valores ordenados de la media
+order = means.sort_values(ascending=True).index
+
+#utilizamos este index para reordenar nuestras metricas
+means_sorted = means[order]
+stds_sorted = stds[order]
+teams_sorted = order
+
+
+metric_values = {
+    'std': stds_sorted,
+
+    'mean': means_sorted
+}
+
+x = np.arange(len(teams_sorted))
+width = 0.4
+multiplier = 0
+
+fig, ax = plt.subplots(layout='constrained')
+
+for attribute, measurement in metric_values.items():
+    offset = width * multiplier
+    rects = ax.barh(x + offset, measurement, width, label=attribute)
+    ax.bar_label(rects, padding=1)
+    multiplier += 1
+
+ax.set_xlabel('Value')
+ax.set_title('Engagement medio por equipo')
+
+# Etiquetas ordenadas
+ax.set_yticks(x + width, teams_sorted)
+
+ax.legend(loc='lower right')
+ax.set_xlim(0, 4)
+
+plt.savefig('../Figures/BarplotEquipos.png')
+plt.show()
+
+
+```
+
+Ahora tenemos una visualización clara del orden de los equipos en base a la media del engagement y a su vez de sus desviaciones estandar que en la mayoría de los casos parece muy similar.
+
+En base a estas metricas el equipo con mejor engagement es "Star Wars: The Furry Awakens" y el peor siendo "Breaking Badger"
+
+
+
+```{python}
+
+# Extraer valores de engagement y nombres de equipo
+engagement_values = []
+team_labels = []
+
+for df in data_by_team:
+    engagement_values.append(df["engagement"])
+    team_labels.append(df["team_name"].iloc[0])  # tomar el nombre del equipo
+
+
+fig=plt.boxplot(engagement_values, labels=team_labels, vert=False)
+
+plt.xlabel("Engagement")
+plt.title("Distribución de Engagement por Equipo")
+plt.savefig('../Figures/BoxplotEquipos.png')
+plt.show()
+
+
+```
+
+Pasando al boxplot podemos observar una cantidad significativa de outliers en los valores mas bajos del engagement mostrando que hay un 
+
+### Division por meses
+
+```{python}
+
+month_describe = pd.DataFrame()
+data_by_month= []
+for month in months:
+    data_by_month.append(data[data['date'].dt.month == month])
+
+    month_describe[month]=data[data['date'].dt.month == month]["engagement"].describe()
+#
+print(month_describe)
+```
+
+
+```{python}
+
+means = month_describe.loc["mean"]
+stds = month_describe.loc["std"]
+
+#utilizamos este index para reordenar nuestras metricas
+
+metric_values = {
+    'std': stds,
+    'mean': means
+}
+
+x = np.arange(len(months))
+width = 0.4
+multiplier = 0
+
+fig, ax = plt.subplots(layout='constrained')
+
+for attribute, measurement in metric_values.items():
+    offset = width * multiplier
+    rects = ax.barh(x + offset, measurement, width, label=attribute)
+    ax.bar_label(rects, padding=1)
+    multiplier += 1
+
+ax.set_xlabel('Value')
+ax.set_title('Engagement medio por mes')
+
+# Etiquetas ordenadas
+ax.set_yticks(x + width, month_names)
+
+ax.legend(loc='upper right')
+ax.set_xlim(0, 4)
+
+plt.savefig('../Figures/BarplotMes.png')
+plt.show()
+
+```
+A partir de esta grafica es fácil distinguir al mes de enero como el mes más productivo de los registros
+
+```{python}
+
+# Extraer valores de engagement y nombres de equipo
+engagement_values = []
+
+for df in data_by_month:
+    engagement_values.append(df["engagement"])
+ # tomar el nombre del equipo
+
+
+plt.boxplot(engagement_values, labels=month_names, vert=False)
+
+plt.xlabel("Engagement")
+plt.title("Distribución de Engagement por Mes")
+plt.savefig('../Figures/BoxplotMes.png')
+plt.show()
+
+
+```
+
+ 
+
 Lo que si podemos hacer para las columnas categóricas es ver cuantos valores únicos tienen y cúantos registros hay por cada uno de estos valores.
 
 ```{python}
@@ -129,28 +298,31 @@ Como parte del análisis exploratorio de estos datos decidimos considerar si rea
 Para decidir si este tipo de prueba sería una buena idea comenzamos viendo la distribución de los datos de la variable de engagement que será la que intentaremos predecir más adelante. 
 
 ```{python}
+mean = data['engagement'].mean()
+
 plt.title('Distribución de valores de engagement')
 plt.xlabel('Puntaje de engagement')
 plt.ylabel('Frecuencia')
 plt.hist(data['engagement'], bins=30, color='purple',density=True);
+plt.axvline(mean, color='red', linestyle='--', linewidth=2)
 plt.savefig('../Figures/EngagementDist.png')
 plt.show()
 ```
 
-Como se puede notar por su histograma la distribución de estos datos no es precisamente normal ya que hay demasiados valores muy bajos y muy altos (cerca de 0 y cerca de 5) además de que existe un espacio vacío en general entre 1 y 1.5 aproximadamente. Ahora veremos como se distribuye esto si separamos por equipos
+Como se puede notar por su histograma la distribución de estos datos no es precisamente normal ya que hay demasiados valores muy bajos y muy altos (cerca de 0 y cerca de 5) además de que existe un espacio vacío en general entre 1 y 1.5 aproximadamente. Aunado a lo anterior también se puede notar que la media global del desempeño es de alrededor de 3. Ahora veremos como se distribuye esto si separamos por equipos
 
 ```{python}
 n = data['team_name'].nunique()
 teams = list(data['team_name'].unique())
 
-fig, axs = plt.subplots(int(np.ceil(n/2)),2, figsize= (20,20));
+fig, axs = plt.subplots(int(np.ceil(n/2)),2, figsize= (22,22));
 
 row = 0
 col = 0
 
 for team in teams:
     d = data[data['team_name'] == team]
-    mean = data['engagement'].mean()
+    mean = d['engagement'].mean()
     if col == 2:
         row += 1
         col = 0
@@ -167,7 +339,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-Con estas gráficas ya creadas se puede notar que el engagement o muy bajo o muy alto no son características de un equipo en especial a lo largo de todo el tiempo en el que se recabaron estos datos. A pesar de esto si es relevante notar que las distribuciones del engagement si cambian dependiendo del equipo del que se trata.
+Con estas gráficas ya creadas se puede notar que el engagement o muy bajo o muy alto no son características de un equipo en especial a lo largo de todo el tiempo en el que se recabaron estos datos. A pesar de esto si es relevante notar que las distribuciones del engagement si cambian dependiendo del equipo del que se trata. En específico se puede notar que las medias de equipos como *Breaking Badger* y *Star Wars: The Furry Awakens* difieren bastante de la media global para el desempeño.
 
 Ahora sería relevante encontrar si el engagement general baja en alguna fecha, para esto seccionaremos en los 12 meses del año y veremos si alguno presenta una distribución significativamente diferente.
 
@@ -194,7 +366,7 @@ for i, month in enumerate(months):
     col += 1
 
 fig.suptitle('Distribución de engagement por mes')
-plt.savefig('../Figures/EgagementMes.png')
+plt.savefig('../Figures/EngagementMes.png')
 plt.tight_layout()
 plt.show()
 ```
@@ -218,7 +390,7 @@ for team in teams:
     team_engagements.append(group['engagement'].values)
     team_dates.append(group['date'].values)
 
-fig, axs = plt.subplots(5,2,figsize=(20,20))
+fig, axs = plt.subplots(5,2,figsize=(25,25))
 row = 0
 col = 0
 
@@ -258,7 +430,7 @@ for person in people:
     people_engagements.append(person_data['engagement'].values)
     people_dates.append(person_data['date'].values)
 
-fig, axs = plt.subplots(5,2,figsize = (20,20))
+fig, axs = plt.subplots(5,2,figsize = (25,25))
 row = 0
 col = 0
 
