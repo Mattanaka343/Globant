@@ -112,6 +112,7 @@ Como podemos ver, confirmamos que el engagement es una variable que toma valores
 Si bien se cuenta con la descripción general de los datos de todos los empleados también resulta importante evaluar el nivel de engagement medio por equipo para hacer comparativas entre la eficiencia de todos los equipos
 ### División por equipos de trabajo
 ```{python}
+teams = data['team_name'].unique()
 team_describe = pd.DataFrame()
 data_by_team= []
 for team in teams:
@@ -202,7 +203,8 @@ Pasando al boxplot podemos observar una cantidad significativa de outliers en lo
 ### Division por meses
 
 ```{python}
-
+months = [1,2,3,4,5,6]
+month_names = ['Enero','Febrero','Marzo','Abril','Mayo','Junio']
 month_describe = pd.DataFrame()
 data_by_month= []
 for month in months:
@@ -452,3 +454,4 @@ plt.show()
 ```
 
 Aquí se pueden notar algunos patrones bastante más obvios que muestran que el engagement en efecto decrece con el tiempo para ciertas personas. Esto se puede ver especialmente en los casos de Sofia Delgado y Ana Gómez que pertenecen a los eqipos de Finding Nemo's Friends y Breaking Badger respectivamente. En ambos casos sus engagements decrecen de manera bastante estable y luego se estancan en un valor alrededor de 3 el cual es el valor promedio del engagement. Adicionalmente se puede notar que varios parecen no seguir mucho un patrón y simplemente oscilar en los valores altos con alguno que otro cero marcando una inasistencia para ese miembro del equipo, un ejemplo de este tipo de conducta se presenta en el caso de Natalia Ramirez y Ana Salas. Finalmente se puede encontrar otro tipo de patrón diferente en el que los valores oscilan en los números altos, luego bajan por un periodo de tiempo y finalmente suben otra vez, esto se puede ver en los casos de Alberto Bravo y Paula Cordero. Estos patrones sugieren que no existe un patrón general para el engagement en todos los empleados y que un modelo sería mejor si intenta predecir los engagements personales.   
+

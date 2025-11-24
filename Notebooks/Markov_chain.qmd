@@ -1,0 +1,242 @@
+---
+title: "Análisis Exploratorio De Datos"
+subtitle: "Proyecto Final"
+authors:
+  - Mateo Yáñez Tanaka
+  - Jorge Sánchez Ponce
+  - Fernando Ramos Valdez
+  - Fernando Pavía González
+date: "16/11/2025"
+institution: "Tec de Monterrey"
+format:
+  html:
+    toc: true
+    html-math-method: katex
+    embed-resources: true
+    self-contained-math: true
+    df-print: kable
+    title-block-banner: true
+    title-block-style:1
+    code-fold: false
+    code-tools: false
+    echo: false
+---
+
+## Cadena de Markov
+
+Adicionalmente, decidimos modelar el engagement como una cadena de Markov. Esto para entender mejor el comportamiento y las transiciones del engagement a lo largo del tiempo de los datos. Dicho esto decidimos hacer una cadena de Markov para cada equipo, de esta manera es más fácil analizar las transiciones del engagement en cada equipo y considerar que cada equipo trabaja de manera diferente e independiente. 
+
+Para esto, primero debemos de discretizar los valores del engagement, decidimos discretizar haciendo un round al entero más cercano, quedandonos con valores del 0-5, es decir, 6 estados:
+- 0: NO engagement 
+- 1: engagement bajo
+- 2: engagement bajo-medio
+- 3: engagement medio
+- 4: engagement medio-alto
+- 5: engagement alto
+
+
+```{python}
+from numpy.linalg import matrix_power
+
+# 2. Parsear fechas y ordenar (muy importante para las transiciones temporales)
+df["date"] = pd.to_datetime(df["date"])
+df = df.sort_values(["team_name", "date"])
+
+# 3. Discretizar el engagement a estados 0–5
+def discretize_engagement(x):
+    x_round = np.round(x).astype(int)
+    return np.clip(x_round, 0, 5) # limitar entre 0 y 5
+
+df["eng_state"] = discretize_engagement(df["engagement"])
+
+# Lista de estados posibles
+states = np.arange(0, 6)   # 0,1,2,3,4,5
+n_states = len(states)
+
+
+# 4. Función para construir matriz de transición para una secuencia de estados
+def build_transition_matrix(states_seq, n_states, smoothing=1):
+    """
+    states_seq: array de estados (e.g., [3,3,4,2,3,...])
+    n_states: número de estados (6 para 0–5)
+    smoothing: Laplace smoothing (alpha)
+    """
+    # Secuencias origen y destino
+    from_s = states_seq[:-1]
+    to_s = states_seq[1:]
+    
+    # Matriz de conteos
+    counts = np.zeros((n_states, n_states), dtype=int)
+    for i, j in zip(from_s, to_s):
+        if 0 <= i < n_states and 0 <= j < n_states:
+            counts[i, j] += 1
+    
+    # Laplace smoothing para evitar filas con suma 0
+    alpha = smoothing
+    counts_smoothed = counts + alpha
+    
+    row_sums = counts_smoothed.sum(axis=1, keepdims=True)
+    P = counts_smoothed / row_sums  # matriz de probabilidades
+    
+    return counts, P
+
+
+# 5. Construir una cadena de Markov por equipo
+team_matrices = {}  # dict: team_name -> {"counts": ..., "P": ...}
+
+for team, df_team in df.groupby("team_name"):
+    seq = df_team["eng_state"].values
+    
+    # Necesitamos al menos 2 observaciones para tener transiciones
+    if len(seq) < 2:
+        continue
+    
+    counts, P = build_transition_matrix(seq, n_states)
+    team_matrices[team] = {
+        "counts": counts,
+        "P": P
+    }
+
+# Ahora team_matrices tiene una matriz de transición para cada equipo
+print(team_matrices.keys())
+
+```
+
+Con esto ya tenemos las matrices de transición para cada equipo. Ahora podemos visualizar algunas de estas matrices para entender mejor las transiciones del engagement en cada equipo.
+
+
+```{python}
+def plot_transition_matrix(P, team_name):
+    plt.figure(figsize=(8,6))
+    sns.heatmap(P, annot=True, fmt=".2f", cmap="Blues", 
+                xticklabels=states, yticklabels=states)
+    plt.title(f'Matriz de Transición de Engagement - {team_name}')
+    plt.xlabel('Estado Siguiente')
+    plt.ylabel('Estado Actual')
+    plt.show()
+# Visualizar algunas matrices de transición
+for team in list(team_matrices.keys())[:10]:  # mostrar solo 10 equipos
+    P = team_matrices[team]["P"]
+    plot_transition_matrix(P, team)
+```
+
+Al observar las matrices de transición de los diferentes equipos, podemos notar varios patrones interesantes en las transiciones del engagement. Por ejemplo, algunos equipos muestran una alta probabilidad de permanecer en el mismo estado de engagement, lo que sugiere estabilidad en el compromiso de sus miembros. Otros equipos, sin embargo, tienen probabilidades significativas de transitar entre estados bajos y altos de engagement, indicando fluctuaciones en el compromiso a lo largo del tiempo. Estas observaciones pueden ser útiles para identificar equipos que podrían beneficiarse de intervenciones específicas para mejorar el engagement.
+
+
+```{python}
+def next_step_distribution(current_engagement, P):
+    """
+    current_engagement: valor continuo (0–5)
+    P: matriz de transición (n_states x n_states) para ese equipo
+    """
+    s = int(np.clip(round(current_engagement), 0, 5))  # mismo redondeo que antes
+    
+    v0 = np.zeros((1, n_states))
+    v0[0, s] = 1  # vector de estado actual (one-hot)
+    
+    # Distribución del siguiente paso
+    v1 = v0 @ P   # (1 x n_states)
+    return v1.flatten()  # array de tamaño n_states
+
+for team in list(team_matrices.keys())[:5]:  # probar con 5 equipos
+    P_team = team_matrices[team]["P"]
+    dist_next = next_step_distribution(2.7, P_team)
+    #print(f"Equipo: {team}")
+    for state, prob in enumerate(dist_next):
+        print(f"Equipo {team} → P(engagement = {state} mañana) = {prob:.3f}")
+    print()
+
+#team = "Breaking Badger"
+#P_team = team_matrices[team]["P"]
+
+#dist_next = next_step_distribution(3.2, P_team)
+#for state, prob in enumerate(dist_next):
+    #print(f"Equipo {team} → P(engagement = {state} mañana) = {prob:.3f}")
+
+```
+
+
+```{python}
+def k_step_distribution(current_engagement, P, k):
+    s = int(np.clip(round(current_engagement), 0, 5))
+    
+    v0 = np.zeros((1, n_states))
+    v0[0, s] = 1
+    
+    Pk = matrix_power(P, k)
+    vk = v0 @ Pk
+    return vk.flatten()
+
+for team in list(team_matrices.keys())[:10]:
+    P_team = team_matrices[team]["P"]
+    print(f"Equipo: {team}")
+    dist_7_days = k_step_distribution(2.7, P_team, k=7)
+    for state, prob in enumerate(dist_7_days):
+        print(f"Equipo {team} → P(engagement = {state} en 7 días) = {prob:.3f}")
+    print()
+
+#dist_7_days = k_step_distribution(3.2, P_team, k=7)
+#for state, prob in enumerate(dist_7_days):
+    #print(f"En 7 días, P(engagement = {state}) = {prob:.3f}")
+
+```
+
+
+
+```{python}
+import numpy as np
+
+def stationary_distribution(P, tol=1e-10, max_iter=10000):
+    """
+    Calcula la distribución estacionaria de una cadena de Markov
+    dada su matriz de transición P (fila-estocástica).
+
+    Parámetros:
+    -----------
+    P : np.ndarray
+        Matriz de transición (n_states x n_states), filas suman 1.
+    tol : float
+        Tolerancia para criterio de convergencia (norma L1).
+    max_iter : int
+        Máximo número de iteraciones.
+
+    Retorna:
+    --------
+    pi : np.ndarray
+        Vector de distribución estacionaria (1 x n_states).
+    """
+    n = P.shape[0]
+    
+    # Distribución inicial uniforme
+    pi = np.ones(n) / n
+    
+    for _ in range(max_iter):
+        pi_next = pi @ P   # paso de la cadena
+        # Checamos cambio entre iteraciones
+        if np.linalg.norm(pi_next - pi, ord=1) < tol:
+            return pi_next
+        pi = pi_next
+    
+    # Si no converge dentro de max_iter, devolvemos lo que tengamos
+    return pi
+
+```
+
+
+
+```{python}
+stationary_dists = {}  # dict: team_name -> pi (distribución estacionaria)
+
+for team, mats in team_matrices.items():
+    P = mats["P"]  # matriz de transición del equipo
+    pi = stationary_distribution(P)
+    stationary_dists[team] = pi
+
+# Ejemplo: imprimir resultados
+for team, pi in stationary_dists.items():
+    print(f"Equipo: {team}")
+    for state, prob in enumerate(pi):
+        print(f"  Estado {state} -> {prob:.3f}")
+    print() 
+
+```
