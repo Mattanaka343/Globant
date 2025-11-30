@@ -1,0 +1,217 @@
+---
+title: "Creación de Modelos: Clasificación"
+author: Mateo Yañez Tanaka
+format:
+  html: 
+    toc: true
+    html-math-method: katex
+    embed-resources: true
+    self-contained-math: true
+    df-print: kable
+    echo: false
+---
+Como se discutió en el archivo ```DataExploration.html``` el objetivo principal de este proyecto es crear un modelo que nos permita predecir el desempeño de los empleados. Para esto se pueden tomar varios approaches, en especifico en en este documento nos enfocaremos en el approach de clasificación. 
+
+## Preparación de los datos:
+ 
+ Pare este modelo se usarán los datos limpios resultantes del archivo pasado, sin embargo se les hará una simple modificación: se agregará una columna llamada ```category``` que se refirirá a una versión discreta de ```engagement```. Esto se hará de esta forma debido a que el modelo que se usará es de clasificación. Aunado a lo anterior en la preparación de los datos se recodificarán las variables. Para este proceso se usará la función ```OneHotEncoder``` del módulo de scikit-learn junto con una función auxiliar llamada ```encode``` que se usará en el caso de seniority debido a que esta variable se puede representar de manera oridnal. 
+
+La discretización se llevará acabo de la siguiente manera:
+
+- Ausencia (0): si $engagement = 0$
+- Bajo (1): si $0 < engagement \le 1.25$
+- Medio (2): si $2<engagement <4$
+- Alto (3): si $4 \le engagement$
+
+Los valores de ```seniority``` se asignarán de la siguiente forma:
+
+1. Jr
+2. Ssr
+3. Sr Level 1 
+4. Sr Level 2
+5. Sr Level 3
+
+Finalmente también se crearán vectores con los últimos n dias de engagement como features de manera que se prediga el valor del (n+1)-ésimo día. Esto ayudará a adaptar de mejor forma los modelos de clasificación a la serie de tiempo.
+
+```{python}
+import numpy as np
+import pandas as pd
+from warnings import simplefilter
+simplefilter('ignore')
+%run ../Scripts/discretize_and_encode
+
+data = pd.read_csv('../Data/data_globant_clean.csv')
+data['date'] = pd.to_datetime(data['date'])
+data['category'] = discretize(data,'engagement')
+data['seniority'] = encode(data,'seniority')
+data.sort_values(['name','date'])
+
+window = 7
+rows = []
+
+for emp, group in data.groupby('name'):
+    group = group.sort_values('date').reset_index(drop = True)
+
+    for i in range(len(group) - window):
+        window_slice = group.iloc[i:i+window+1]
+        eng_window = {f'eng_t{window-j-1}': window_slice['engagement'].iloc[j] 
+        for j in range(window)}
+        last_row = group.iloc[i+window]
+        row = {
+            "name": emp,
+            "date_end": last_row["date"],   
+            "position": last_row["position"],
+            "seniority": last_row["seniority"],
+            "location": last_row["location"],
+            "studio": last_row["studio"],
+            "client": last_row["client"],
+            "project": last_row["project"],
+            "team_name": last_row["team_name"],
+            "category": last_row["category"]  
+        }
+
+        row.update(eng_window)
+        rows.append(row)
+
+class_data= pd.DataFrame(rows)
+
+class_data.head()
+```
+
+Este nuevo arreglo de datos nos permitirá entrenar modelos de clasificación que puedan predecir el engagement basado en el que se observó por los 7 últimos días.
+
+## Construyendo la Pipeline
+
+Con los datos ya preparados construiremos una pipeline que se encarge de terminar el preprocesamiento y asegure que los datos se alimenten al modelo en la forma en la que le sean útilies.
+
+```{python}
+from sklearn.compose import ColumnTransformer, make_column_selector
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+X = class_data.drop(columns = ['name','category','date_end'])
+y = class_data['category']
+groups = class_data['name']
+
+cat_selector = make_column_selector(dtype_include = ['object'])
+num_selector  = make_column_selector(dtype_include = ['int64','float64'])
+
+preprocess = ColumnTransformer(transformers = [
+    ('cat',OneHotEncoder(handle_unknown = 'ignore', drop = 'first'),cat_selector),
+    ('num',StandardScaler(),num_selector) ]
+)
+
+preprocess
+```
+
+con este procedimiento ya listo podemos proceder a seleccionar y entrenar diferentes modelos.
+
+## Random Forest Classifier
+
+El primer modelo que se usará es Random Forest Classifier, es un modelo de clasificación de ensamble que es bastante popular para la clasificación de series de tiempo.
+
+```{python}
+from sklearn.model_selection import GroupKFold
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import recall_score,classification_report,accuracy_score
+
+clf = make_pipeline(preprocess,RandomForestClassifier())
+
+kf = GroupKFold(n_splits=5)
+
+cv_y_pred = []
+cv_y_test = []
+
+for train_index, test_index in kf.split(X,y,groups=groups):
+    
+    x_train = X.iloc[train_index]
+    y_train = y.iloc[train_index]
+    
+    clf.fit(x_train, y_train)
+   
+
+    x_test = X.iloc[test_index]
+    y_test = y.iloc[test_index]
+    y_pred = clf.predict(x_test)
+
+    cv_y_test.append(y_test)
+    cv_y_pred.append(y_pred)
+    
+print(classification_report(np.concatenate(cv_y_test), np.concatenate(cv_y_pred)))
+
+```
+
+El modelo alcanza una accuracy de alrededor del 86% sin embargo esto es porque predice mayormente la clase mayoritaria, que es engagement medio. El modelo es especialmente malo prediciendo ausencias y valores bajos y medianamente bueno prediciendo los valores altos, evidenciado por los recalls de cada clase siendo 6% 36% y 60% respectivamente para las mencionadas. 
+
+## SVC
+
+El segundo modelo que se usrá será el Support Vector Classifier. Este modelo es la versión de clasificador de una Support Vector Machine e intenta encontrar el mejor límite alrededor de una línea para clasificar los datos.
+
+
+```{python}
+from sklearn.svm import SVC
+
+clf = make_pipeline(preprocess, 
+SVC(kernel='rbf', class_weight='balanced'))
+
+cv_y_pred = []
+cv_y_test = []
+
+for train_index, test_index in kf.split(X,y,groups=groups):
+    
+    x_train = X.iloc[train_index]
+    y_train = y.iloc[train_index]
+    
+    clf.fit(x_train, y_train)
+   
+
+    x_test = X.iloc[test_index]
+    y_test = y.iloc[test_index]
+    y_pred = clf.predict(x_test)
+
+    cv_y_test.append(y_test)
+    cv_y_pred.append(y_pred)
+    
+print(classification_report(np.concatenate(cv_y_test), np.concatenate(cv_y_pred)))
+
+```
+
+El performance de este segundo modelo fue relativamente peor con una accuracy de alrededor de 68% pero el modelo en general parece ser mejor en unos cuantos aspectos. Los recalls por clase en este caso muestran que hizo un mejor trabajo prediciendo las ausencias y los valores bajos con recalls de 24% y 58% respectivamente. La clase que mejor predice este modelo es el engagement alto, con un recall de 76%.
+
+## KNN classifier
+
+El último modelo que se usrá será el K-Nearest Neighbors Classifier. Este clasificador se basa en distancia asignando la clase que más se parezca a las observaciones cercanas.
+
+```{python}
+from sklearn.neighbors import KNeighborsClassifier
+
+clf = make_pipeline(preprocess,
+KNeighborsClassifier(n_neighbors=5))
+
+cv_y_pred = []
+cv_y_test = []
+
+for train_index, test_index in kf.split(X,y,groups=groups):
+    
+    x_train = X.iloc[train_index]
+    y_train = y.iloc[train_index]
+    
+    clf.fit(x_train, y_train)
+   
+
+    x_test = X.iloc[test_index]
+    y_test = y.iloc[test_index]
+    y_pred = clf.predict(x_test)
+
+    cv_y_test.append(y_test)
+    cv_y_pred.append(y_pred)
+    
+print(classification_report(np.concatenate(cv_y_test), np.concatenate(cv_y_pred)))
+```
+
+El performance de este último modelo presenta un buen balance entre los primeros dos con una accuracy del 82% y recalls que muestran mejor predicción de las clases que el primer modelo. El modelo sigue presentando dificultades al momento de predecir las ausencias, con un recall del 10% y predice las clases alta y baja de manera muy similar con recalls de 44% y 39% respectivamente. Finalmente predice de manera casi perfecta el engagement medio con un recall del 95%
+
+## Conclusiones
+
+El modelo más recomendable para este caso es el KNN-Classifier debido a que tiene el mejor balance entre accuracy y recals por clase, con una accuracy solo 4% menor que el modelo entrenado con random forest pero un recall 4% más alto para la clase minoritaria de ausencias y un mejor recall para el engagement bajo. 
+

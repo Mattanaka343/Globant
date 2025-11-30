@@ -79,7 +79,7 @@ data.drop(columns=['email','client_tag','project_tag','email_leader','year','mon
 data.drop_duplicates(inplace=True)
 data['date'] = pd.to_datetime(data['date'], format='%d%b%y')
 
-data.to_csv('../Data/data_globant_clean.csv')
+data.to_csv('../Data/data_globant_clean.csv', index=False)
 ```
 
 Con esto terminamos la limpieza de los datos y podemos proceder con el análisis exploratorio.
