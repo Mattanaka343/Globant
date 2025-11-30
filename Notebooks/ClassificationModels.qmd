@@ -213,5 +213,5 @@ El performance de este último modelo presenta un buen balance entre los primero
 
 ## Conclusiones
 
-El modelo más recomendable para este caso es el KNN-Classifier debido a que tiene el mejor balance entre accuracy y recals por clase, con una accuracy solo 4% menor que el modelo entrenado con random forest pero un recall 4% más alto para la clase minoritaria de ausencias y un mejor recall para el engagement bajo. 
+El modelo más recomendable para este caso es el KNN-Classifier debido a que tiene el mejor balance entre accuracy y recals por clase, con una accuracy solo 4% menor que el modelo entrenado con random forest pero un recall 4% más alto para la clase minoritaria de ausencias y un mejor recall para el engagement bajo.
 

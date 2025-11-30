@@ -1,0 +1,24 @@
+---
+title: "Modelo: Cadena de Markov"
+authors:
+- Mateo Yáñez Tanaka
+- Fernando Pavía González
+format:
+    html: 
+        toc: true
+        self-contained-math: true
+        df-print: kable
+        html-math-method: katex
+        embed-resources: true
+        echo: false
+---
+
+```{python}
+import pandas as pd
+import numpy as np
+%run ../Scripts/MarkovFuncs.py
+
+
+data = pd.read_csv('../Data/data_globant_clean.csv')
+p, vals = MarkovChain(data,'Breaking Badger',form = 'team', discrete = 'round')
+```
