@@ -10,11 +10,11 @@ format:
     df-print: kable
     echo: false
 ---
-Como se discutió en el archivo ```DataExploration.html``` el objetivo principal de este proyecto es crear un modelo que nos permita predecir el desempeño de los empleados. Para esto se pueden tomar varios approaches, en especifico en en este documento nos enfocaremos en el approach de clasificación. 
+Como se discutió en el archivo ```DataExploration.html``` el objetivo principal de este proyecto es crear un modelo que nos permita predecir el desempeño de los empleados. Para esto se pueden tomar varios approaches, en específico en este documento nos enfocaremos en el approach de clasificación. 
 
 ## Preparación de los datos:
  
- Pare este modelo se usarán los datos limpios resultantes del archivo pasado, sin embargo se les hará una simple modificación: se agregará una columna llamada ```category``` que se refirirá a una versión discreta de ```engagement```. Esto se hará de esta forma debido a que el modelo que se usará es de clasificación. Aunado a lo anterior en la preparación de los datos se recodificarán las variables. Para este proceso se usará la función ```OneHotEncoder``` del módulo de scikit-learn junto con una función auxiliar llamada ```encode``` que se usará en el caso de seniority debido a que esta variable se puede representar de manera oridnal. 
+ Para este modelo se usarán los datos limpios resultantes del archivo pasado, sin embargo se les hará una simple modificación: se agregará una columna llamada ```category``` que se referirá a una versión discreta de ```engagement```. Esto se hará de esta forma debido a que el modelo que se usará es de clasificación. Aunado a lo anterior en la preparación de los datos se recodificarán las variables. Para este proceso se usará la función ```OneHotEncoder``` del módulo de scikit-learn junto con una función auxiliar llamada ```encode``` que se usará en el caso de seniority debido a que esta variable se puede representar de manera ordinal. 
 
 La discretización se llevará acabo de la siguiente manera:
 
@@ -145,7 +145,7 @@ El modelo alcanza una accuracy de alrededor del 86% sin embargo esto es porque p
 
 ## SVC
 
-El segundo modelo que se usrá será el Support Vector Classifier. Este modelo es la versión de clasificador de una Support Vector Machine e intenta encontrar el mejor límite alrededor de una línea para clasificar los datos.
+El segundo modelo que se usará será el Support Vector Classifier. Este modelo es la versión de clasificador de una Support Vector Machine e intenta encontrar el mejor límite alrededor de una línea para clasificar los datos.
 
 
 ```{python}
