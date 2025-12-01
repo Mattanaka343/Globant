@@ -12,13 +12,138 @@ format:
         embed-resources: true
         echo: false
 ---
+Como se dscutió en el documento ```DataExploration.html```, el objetivo principal de este proyecto es lograr predecir el desempeño de los empleados basndonos en sus condctas anteriores.
 
+## Motivación
+
+A pesar de que existen varias formas de modelar estos datos para intentar predecir los valores de las observaciones basandonos en la información que tenemos una forma muy natural ed caracterizarlos es como una cadena de Markov. Resulta natural caracterizar los datos de esta manera dado que los valores que tenemos se mueven con un tiempo discreto y se pueden caracterizar como dependientes únicamente en lo que pasó la semana pasada. Además de que teóricamente existe comunicación entre todos los estados. 
+
+## Preprocesamiento
+
+Para poder caracterizar estos datos como una cadena de markovse requiere de discretizar los datos. Esta discretización se llevará a cabo dentro del documento de funciones útiles ```MarkovFuncs.py``` y se llevará a cabo con uno de dos formatos dependiendo del concepto que se tenga en mente. Estos formatos son los siguientes:
+
+- A base de redondeo: En este tipo de modelo se le aplica la función techo a los valores de engagement de manera que 0 solo se mantiene en el caso de una inasistencia y el resto de los valores se ajustan al siguiente entero más alto
+- Basado en clases: De la misma manera que se menciona en el archivo ```ClassificationModels.html``` se categoria por clases de la siguiente manera: 
+    - Ausencia (0): si $engagement = 0$
+    - Bajo (1): si $0 < engagement \le 1.25$
+    - Medio (2): si $2<engagement <4$
+    - Alto (3): si $4 \le engagement$
+
+fuera de esto las probabilidades dentro de la matriz de transición se calcularán usando el MLE (Macimum Likelyhood Estimator) de las probabilidades de transición de manera que $$\hat{p_{ij}} = \frac{n_{ij}}{n_{i}}$$  de esa forma estableciendo los modelos.
+
+## Modelando Cadenas
+
+Con esto establecido y utilizando las funciones que se encuentran en el archivo auxiliar ```MarkovFuncs.py``` Procederemos a crear 4 cadenas de Markov Diferentes para tener una idea de cómo funcionarían estos modelos estas serán:
+
+- Cadena para el equipo *Breaking Badger* con discretización de redondeo
+- Cadena para el equipo *Breaking Badger* con discretización basada en clases
+- Cadena para Natalia Ramírez con discretización de redondeo
+- Cadena para Natalia Ramírez con discretización basada en clases
+
+Y con cada una de estas cadenas se analizará:
+
+- La matriz de transicón
+- La distribución límite si es que poseé una
+- Una pequeña simulación de 50 días después de el último valor recabado
+
+Comenzaremos con:
+
+### Cadena de *Breaking Badger* 1
 ```{python}
 import pandas as pd
 import numpy as np
 %run ../Scripts/MarkovFuncs.py
-
-
 data = pd.read_csv('../Data/data_globant_clean.csv')
-p, vals = MarkovChain(data,'Breaking Badger',form = 'team', discrete = 'round')
+p, vals, last = MarkovChain(data,'Breaking Badger',form = 'team', discrete = 'round')
+pd.DataFrame(data = p, columns=vals, index= vals)
 ```
+
+Esta primera cadena incluye únicamente los valores 0,2,3 y 4 lo que implica que en este equipo se presentaron ausencias totales pero ningún caso de desempeño bajo. Aunado a lo anterior se muestra que las ausencias totales solo se presentan después de un desempeño especialmente alto. Ahora procederemos a ver la distribución límite de esta cadena si es que existe.
+
+```{python}
+lim_dist = HasLimit(p)
+pd.DataFrame(data = lim_dist, columns=vals, index = vals).iloc[0:1]
+```
+
+Esta distribución muestra que la probabilidad se estabiliza en alrededor de tres lo cuál tiene bastante sentido dado que el promedio de los valores de desempeño encuentra su promedio en este valor. También es relevante notar que la probabilidad de que se encuentre una ausencia completa es sumamente baja.
+
+```{python}
+Simulate(p,last,vals,label = 'Breaking Badger (Round)')
+```
+
+La simulación muestra de la misma forma que los valores parecen estancarse de manera bastante estable en el promedio del desempeño con poca variación hacia abajo.
+
+
+### Cadena de *Breaking Badger* 2
+```{python}
+p, vals, last = MarkovChain(data,'Breaking Badger',form = 'team', discrete = 'classes')
+pd.DataFrame(data= p, columns=vals, index = vals)
+```
+
+Esta cadena muestra de la misma manera que las ausencias son poco comunes y vienen únicamente de los engagements altos que en este caso con el criterio de discretización no aparecen y son registrados como medios. Procederemos obteniendo la distribución límite de este caso.
+
+```{python}
+lim_dist = HasLimit(p)
+pd.DataFrame(data = lim_dist, columns=vals, index = vals).iloc[0:1]
+```
+
+De la misma manera que en el caso anterior la distribución límite parece atorarse en los valores medios de desempeño, corroborando las observaciones del modelo anterior.
+
+```{python}
+Simulate(p,last,vals,label = 'Breaking Badger (Classes)')
+```
+
+Al igual que en el caso de discretización anterior los valores se mantienen bastante constantes en el desempeño medio con solo pocas variaciones hacia valores bajos en esta simulación en particular.
+
+### Cadena para Natalia Ramírez 1
+
+```{python}
+p, vals, last = MarkovChain(data,'Natalia Ramírez',form = 'name',discrete = 'round')
+pd.DataFrame(data = p, columns=vals, index = vals)
+```
+
+Como se puede observar, en este caso si se presentan todos los valores y con acceso a todos entre ellos. Datos un tanto curiosos son que si se ausentó un día se ausentará el siguiente con alrededor de 30% de probabilidad  y que una vez obtuvo un engagement alto parece que conservará esos valores. Procederemos a observar la distribución límite para esta cadena.
+
+
+```{python}
+lim_dist = HasLimit(p)
+pd.DataFrame(data = lim_dist, columns=vals, index = vals).iloc[0:1]
+```
+
+En este caso la distrubución límite queda un poco más dividida pero con preferencia a los valores de 3 y 4 mostrando que Natalia se mantiene en en engagement medio alto por la mayoría de de los días.
+
+
+```{python}
+Simulate(p,last,vals,label='Natalia (Round)')
+```
+
+Esta simulación es un poco más caótica, igual mantiene a Natalia en el engagement medio de 3 por la mayotía de los días, pero alcanza ciertos picos en 5 por unos cuantos días e incluso muestra una inasistencia alrededor del día 30 después de el último registro.
+
+
+### Cadena para Natalia Rmíreez 2
+
+
+```{python}
+p, vals, last = MarkovChain(data,'Natalia Ramírez',form = 'name',discrete = 'classes')
+pd.DataFrame(data = p, columns=vals, index = vals)
+```
+
+De la misma forma que con la cadena anterior se presentan todas las clases, la probabilidad de una ausencia después de haberse ausentado es de 30% y finalmente la probabilidad de mantenerse en un engagement alto es de alrededor de 70%. Ahora procederemos a observar la distribución límite para este caso:
+
+```{python}
+lim_dist = HasLimit(p)
+pd.DataFrame(data = lim_dist, columns=vals, index = vals).iloc[0:1]
+```
+
+La distribución límite si muestra una diferencia significativa teniendo la myoría de su probabilidad acumulada en el engagement medio con 76% sin embargo si muestra que el segundo más probable es el engagement alto con 12%.
+
+
+```{python}
+Simulate(p,last,vals,label='Natalia (Classes)')
+```
+
+En este caso la simulación se vé bastante estancada en los valores medios y solo muestra altos y bajos en el desempeño, sin presentar alguna ausencia. Esto muestra otra posibilidad para el desempeño de Natalia en los próximos 50 días.
+
+## Conclusiones.
+
+En general modelos de este tipo podrían ser bastante útiles para comprender de mejor manera que es lo que podría pasar. El modelo con discretización basada en clases muestra una versión un tanto más pesimista de lo que podría pasar mientras que el modelo basado en redondeo muestra una versión más optimista de cómo se podría observar el engagement. Dado el contexto de este problema y la relevancia del desempeño de los empleados consideraría más recomendable considerar el modelo pesimista en caso de que se planeé usar un acercamiento con cadenas de Markov. 

@@ -99,6 +99,7 @@ Como podemos ver, confirmamos que el engagement es una variable que toma valores
 Si bien se cuenta con la descripción general de los datos de todos los empleados también resulta importante evaluar el nivel de engagement medio por equipo para hacer comparativas entre la eficiencia de todos los equipos
 ### División por equipos de trabajo
 ```{python}
+teams = data['team_name'].unique()
 team_describe = pd.DataFrame()
 data_by_team= []
 for team in teams:
@@ -189,7 +190,7 @@ Pasando al boxplot podemos observar una cantidad significativa de outliers en lo
 ### Division por meses
 
 ```{python}
-
+months = data['date'].dt.month.unique()
 month_describe = pd.DataFrame()
 data_by_month= []
 for month in months:
@@ -202,7 +203,7 @@ print(month_describe)
 
 
 ```{python}
-
+month_names = ['Enero','Febrero','Marzo','Abril','Mayo','Junio']
 means = month_describe.loc["mean"]
 stds = month_describe.loc["std"]
 
