@@ -19,7 +19,7 @@ Como se discutió en el archivo ```DataExploration.html``` el objetivo principal
 La discretización se llevará acabo de la siguiente manera:
 
 - Ausencia (0): si $engagement = 0$
-- Bajo (1): si $0 < engagement \le 1.25$
+- Bajo (1): si $0 < engagement \le 2$
 - Medio (2): si $2<engagement <4$
 - Alto (3): si $4 \le engagement$
 
@@ -141,7 +141,7 @@ print(classification_report(np.concatenate(cv_y_test), np.concatenate(cv_y_pred)
 
 ```
 
-El modelo alcanza una accuracy de alrededor del 86% sin embargo esto es porque predice mayormente la clase mayoritaria, que es engagement medio. El modelo es especialmente malo prediciendo ausencias y valores bajos y medianamente bueno prediciendo los valores altos, evidenciado por los recalls de cada clase siendo 6% 36% y 60% respectivamente para las mencionadas. 
+El modelo alcanza una accuracy de alrededor del 86% sin embargo esto es porque predice mayormente la clase mayoritaria, que es engagement medio. El modelo es especialmente malo prediciendo ausencias y valores bajos y medianamente bueno prediciendo los valores altos, evidenciado por los recalls de cada clase siendo 4% 36% y 60% respectivamente para las mencionadas. 
 
 ## SVC
 

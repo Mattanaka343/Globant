@@ -2276,7 +2276,7 @@ window.Quarto = {
 <p>La discretización se llevará acabo de la siguiente manera:</p>
 <ul>
 <li>Ausencia (0): si <span class="math inline">engagement = 0</span></li>
-<li>Bajo (1): si <span class="math inline">0 &lt; engagement \le 1.25</span></li>
+<li>Bajo (1): si <span class="math inline">0 &lt; engagement \le 2</span></li>
 <li>Medio (2): si <span class="math inline">2&lt;engagement &lt;4</span></li>
 <li>Alto (3): si <span class="math inline">4 \le engagement</span></li>
 </ul>
@@ -2289,7 +2289,7 @@ window.Quarto = {
 <li>Sr Level 3</li>
 </ol>
 <p>Finalmente también se crearán vectores con los últimos n dias de engagement como features de manera que se prediga el valor del (n+1)-ésimo día. Esto ayudará a adaptar de mejor forma los modelos de clasificación a la serie de tiempo.</p>
-<div id="06ecd12c" class="cell" data-execution_count="1">
+<div id="f75f7a84" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display" data-execution_count="1">
 <div>
 
@@ -2429,7 +2429,7 @@ window.Quarto = {
 <section id="construyendo-la-pipeline" class="level2">
 <h2 class="anchored" data-anchor-id="construyendo-la-pipeline">Construyendo la Pipeline</h2>
 <p>Con los datos ya preparados construiremos una pipeline que se encarge de terminar el preprocesamiento y asegure que los datos se alimenten al modelo en la forma en la que le sean útilies.</p>
-<div id="20679e11" class="cell" data-execution_count="2">
+<div id="1c122820" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display" data-execution_count="2">
 <style>#sk-container-id-1 {
 
@@ -2781,14 +2781,14 @@ display: block;
 </style><div id="sk-container-id-1" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>ColumnTransformer(transformers=[(&#39;cat&#39;,
                                  OneHotEncoder(drop=&#39;first&#39;,
                                                handle_unknown=&#39;ignore&#39;),
-                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x16b3dd400&gt;),
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x30dc59400&gt;),
                                 (&#39;num&#39;, StandardScaler(),
-                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x16b3d91d0&gt;)])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-1" type="checkbox"><label for="sk-estimator-id-1" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>ColumnTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.6/modules/generated/sklearn.compose.ColumnTransformer.html">?<span>Documentation for ColumnTransformer</span></a><span class="sk-estimator-doc-link ">i<span>Not fitted</span></span></div></label><div class="sk-toggleable__content "><pre>ColumnTransformer(transformers=[(&#39;cat&#39;,
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x30dc551d0&gt;)])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-1" type="checkbox"><label for="sk-estimator-id-1" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>ColumnTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.6/modules/generated/sklearn.compose.ColumnTransformer.html">?<span>Documentation for ColumnTransformer</span></a><span class="sk-estimator-doc-link ">i<span>Not fitted</span></span></div></label><div class="sk-toggleable__content "><pre>ColumnTransformer(transformers=[(&#39;cat&#39;,
                                  OneHotEncoder(drop=&#39;first&#39;,
                                                handle_unknown=&#39;ignore&#39;),
-                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x16b3dd400&gt;),
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x30dc59400&gt;),
                                 (&#39;num&#39;, StandardScaler(),
-                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x16b3d91d0&gt;)])</pre></div> </div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-2" type="checkbox"><label for="sk-estimator-id-2" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>cat</div></div></label><div class="sk-toggleable__content "><pre>&lt;sklearn.compose._column_transformer.make_column_selector object at 0x16b3dd400&gt;</pre></div> </div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-3" type="checkbox"><label for="sk-estimator-id-3" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>OneHotEncoder</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.6/modules/generated/sklearn.preprocessing.OneHotEncoder.html">?<span>Documentation for OneHotEncoder</span></a></div></label><div class="sk-toggleable__content "><pre>OneHotEncoder(drop=&#39;first&#39;, handle_unknown=&#39;ignore&#39;)</pre></div> </div></div></div></div></div><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-4" type="checkbox"><label for="sk-estimator-id-4" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>num</div></div></label><div class="sk-toggleable__content "><pre>&lt;sklearn.compose._column_transformer.make_column_selector object at 0x16b3d91d0&gt;</pre></div> </div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-5" type="checkbox"><label for="sk-estimator-id-5" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>StandardScaler</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.6/modules/generated/sklearn.preprocessing.StandardScaler.html">?<span>Documentation for StandardScaler</span></a></div></label><div class="sk-toggleable__content "><pre>StandardScaler()</pre></div> </div></div></div></div></div></div></div></div></div>
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x30dc551d0&gt;)])</pre></div> </div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-2" type="checkbox"><label for="sk-estimator-id-2" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>cat</div></div></label><div class="sk-toggleable__content "><pre>&lt;sklearn.compose._column_transformer.make_column_selector object at 0x30dc59400&gt;</pre></div> </div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-3" type="checkbox"><label for="sk-estimator-id-3" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>OneHotEncoder</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.6/modules/generated/sklearn.preprocessing.OneHotEncoder.html">?<span>Documentation for OneHotEncoder</span></a></div></label><div class="sk-toggleable__content "><pre>OneHotEncoder(drop=&#39;first&#39;, handle_unknown=&#39;ignore&#39;)</pre></div> </div></div></div></div></div><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-4" type="checkbox"><label for="sk-estimator-id-4" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>num</div></div></label><div class="sk-toggleable__content "><pre>&lt;sklearn.compose._column_transformer.make_column_selector object at 0x30dc551d0&gt;</pre></div> </div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-5" type="checkbox"><label for="sk-estimator-id-5" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>StandardScaler</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.6/modules/generated/sklearn.preprocessing.StandardScaler.html">?<span>Documentation for StandardScaler</span></a></div></label><div class="sk-toggleable__content "><pre>StandardScaler()</pre></div> </div></div></div></div></div></div></div></div></div>
 </div>
 </div>
 <p>con este procedimiento ya listo podemos proceder a seleccionar y entrenar diferentes modelos.</p>
@@ -2796,27 +2796,27 @@ display: block;
 <section id="random-forest-classifier" class="level2">
 <h2 class="anchored" data-anchor-id="random-forest-classifier">Random Forest Classifier</h2>
 <p>El primer modelo que se usará es Random Forest Classifier, es un modelo de clasificación de ensamble que es bastante popular para la clasificación de series de tiempo.</p>
-<div id="82161b46" class="cell" data-execution_count="3">
+<div id="a24d8c3b" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-stdout">
 <pre><code>              precision    recall  f1-score   support
 
            0       0.92      0.04      0.09       267
-           1       0.72      0.36      0.48       890
-           2       0.86      0.98      0.92      8265
-           3       0.85      0.60      0.71      1286
+           1       0.74      0.36      0.48       890
+           2       0.86      0.98      0.91      8265
+           3       0.85      0.59      0.70      1286
 
     accuracy                           0.86     10708
-   macro avg       0.84      0.50      0.55     10708
+   macro avg       0.84      0.49      0.55     10708
 weighted avg       0.85      0.86      0.83     10708
 </code></pre>
 </div>
 </div>
-<p>El modelo alcanza una accuracy de alrededor del 86% sin embargo esto es porque predice mayormente la clase mayoritaria, que es engagement medio. El modelo es especialmente malo prediciendo ausencias y valores bajos y medianamente bueno prediciendo los valores altos, evidenciado por los recalls de cada clase siendo 6% 36% y 60% respectivamente para las mencionadas.</p>
+<p>El modelo alcanza una accuracy de alrededor del 86% sin embargo esto es porque predice mayormente la clase mayoritaria, que es engagement medio. El modelo es especialmente malo prediciendo ausencias y valores bajos y medianamente bueno prediciendo los valores altos, evidenciado por los recalls de cada clase siendo 4% 36% y 60% respectivamente para las mencionadas.</p>
 </section>
 <section id="svc" class="level2">
 <h2 class="anchored" data-anchor-id="svc">SVC</h2>
 <p>El segundo modelo que se usará será el Support Vector Classifier. Este modelo es la versión de clasificador de una Support Vector Machine e intenta encontrar el mejor límite alrededor de una línea para clasificar los datos.</p>
-<div id="fa43d962" class="cell" data-execution_count="4">
+<div id="c217022f" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-stdout">
 <pre><code>              precision    recall  f1-score   support
 
@@ -2836,7 +2836,7 @@ weighted avg       0.81      0.68      0.72     10708
 <section id="knn-classifier" class="level2">
 <h2 class="anchored" data-anchor-id="knn-classifier">KNN classifier</h2>
 <p>El último modelo que se usrá será el K-Nearest Neighbors Classifier. Este clasificador se basa en distancia asignando la clase que más se parezca a las observaciones cercanas.</p>
-<div id="76c0741c" class="cell" data-execution_count="5">
+<div id="b4a9e7f2" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-stdout">
 <pre><code>              precision    recall  f1-score   support
 

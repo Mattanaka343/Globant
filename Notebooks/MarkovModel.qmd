@@ -25,7 +25,7 @@ Para poder caracterizar estos datos como una cadena de markovse requiere de disc
 - A base de redondeo: En este tipo de modelo se le aplica la función techo a los valores de engagement de manera que 0 solo se mantiene en el caso de una inasistencia y el resto de los valores se ajustan al siguiente entero más alto
 - Basado en clases: De la misma manera que se menciona en el archivo ```ClassificationModels.html``` se categoria por clases de la siguiente manera: 
     - Ausencia (0): si $engagement = 0$
-    - Bajo (1): si $0 < engagement \le 1.25$
+    - Bajo (1): si $0 < engagement \le 2$
     - Medio (2): si $2<engagement <4$
     - Alto (3): si $4 \le engagement$
 
@@ -98,7 +98,7 @@ Al igual que en el caso de discretización anterior los valores se mantienen bas
 ### Cadena para Natalia Ramírez 1
 
 ```{python}
-p, vals, last = MarkovChain(data,'Natalia Ramírez',form = 'name',discrete = 'round')
+p, vals, last = MarkovChain(data,'Natalia Ramírez',form = 'personal',discrete = 'round')
 pd.DataFrame(data = p, columns=vals, index = vals)
 ```
 
@@ -120,11 +120,11 @@ Simulate(p,last,vals,label='Natalia (Round)')
 Esta simulación es un poco más caótica, igual mantiene a Natalia en el engagement medio de 3 por la mayotía de los días, pero alcanza ciertos picos en 5 por unos cuantos días e incluso muestra una inasistencia alrededor del día 30 después de el último registro.
 
 
-### Cadena para Natalia Rmíreez 2
+### Cadena para Natalia Rmírez 2
 
 
 ```{python}
-p, vals, last = MarkovChain(data,'Natalia Ramírez',form = 'name',discrete = 'classes')
+p, vals, last = MarkovChain(data,'Natalia Ramírez',form = 'personal',discrete = 'classes')
 pd.DataFrame(data = p, columns=vals, index = vals)
 ```
 
